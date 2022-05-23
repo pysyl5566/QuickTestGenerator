@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!-- <script type="text/javascript" src="js/jquery-3.3.1.min.js"></script> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+
+    <title>核酸检测快检生成</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        
+        img {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        
+        p {
+            /*text-align: center;*/
+        }
+    </style>
+    
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+          var hm = document.createElement("script");
+          hm.src = "https://hm.baidu.com/hm.js?07629c6ed5a31e52e780c9c9c5e59bcd";
+          var s = document.getElementsByTagName("script")[0]; 
+          s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+</head>
+<body>
+    <p style="border:10px solid #FFE4E1;text-align:center;"><span>&nbsp;&nbsp;&nbsp;&nbsp;因我市启用河南省新冠采集系统，原条形码快检失效，为减少医务人员及受检人员不必要时间，特此开发快检生成器。</span></p><br>
+    <p style="font-size:30px"><span>姓名：</span><input style="font-size:30px" id="uname" type="text"></p></p><br>
+    <p style="font-size:30px"><span>性别：</span><input id="sex" name="sex" type="radio" value="0" style="width:30px;height:30px;">男<input id="sex" name="sex" type="radio" value="1" style="width:30px;height:30px;">女</p><br>
+    <p style="font-size:30px"><span>民族：</span><input style="font-size:30px" id="nation" type="text"></p><br>
+    <p style="font-size:30px"><span>生日：</span><input style="font-size:30px;width:120px;" type="text" id="year" onkeyup="value=value.replace(/[^\d]/g,'')" maxlength="4">年<input style="font-size:30px;width:50px;" type="text" id="month" onkeyup="value=value.replace(/[^\d]/g,'')" maxlength="2">月<input style="font-size:30px;width:50px;" type="text" id="day" onkeyup="value=value.replace(/[^\d]/g,'')" maxlength="2">日</p><br>
+    <p style="font-size:30px"><span>住址：</span><input style="font-size:30px" id="address" type="text"></p><br>
+    <p style="font-size:30px"><span>身份证号：</span><input style="font-size:30px;width:290px;" id="card" type="text" maxlength="18"></p><br>
+    <p style="color:red;text-align:center;">注意：微信中无法自动保存，您可以长按图片保存到相册或右上角打开浏览器保存亦可！</p>
+    
+    <canvas id="aa" width="1500px" height="844px" style="display: none;"></canvas>
+    <div class="box" style="background-color:red;"></div>
+    
+    <p style="text-align:center;"><input type="button"  value="保存" style="font-size:60px;" onclick="g()"/></p>
+    
+    <script>
+        function check_id(value){
+            var arrExp = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2];//加权因子  
+            var arrValid = [1, 0, "X", 9, 8, 7, 6, 5, 4, 3, 2];//校验码  
+            if(/^\d{17}\d|x$/i.test(value)){   
+                var sum = 0, idx;  
+                for(var i = 0; i < value.length - 1; i++){  
+                    // 对前17位数字与权值乘积求和  
+                    sum += parseInt(value.substr(i, 1), 10) * arrExp[i];  
+                }  
+                // 计算模（固定算法）  
+                idx = sum % 11;  
+                // 检验第18为是否与校验码相等  
+                return arrValid[idx] == value.substr(17, 1).toUpperCase();  
+            }else{  
+                return false;  
+            }  
+        }
+    
+        function g() {
+            var uname = $('#uname').val();
+            var nation = $('#nation').val();
+            var year = $('#year').val();
+            var month = $('#month').val();
+            var day = $('#day').val();
+            var address = $('#address').val();
+            var card = $('#card').val();
+            
+            if (uname == '') {
+                alert('请输入姓名！');
+                return;
+            }
+            
+            
+            if ($('input:radio[id="sex"]:checked').val() == null) {
+                alert('请选择性别！');
+                return;
+            }
+            
+            var sex = $('input:radio[id="sex"]:checked').val() == 0 ? '男' : '女';
+            
+            if (nation == '') {
+                alert('请输入民族！');
+                return;
+            }
+            
+            if (year == '') {
+                alert('请输入年！');
+                return;
+            }
+            
+            if (year.length != 4) {
+                alert('年应该为4位！');
+                return;
+            }
+            
+            var nowYear = new Date().getFullYear();
+            
+            if (year < nowYear - 120 || year > nowYear) {
+                alert('年范围应该不小于当年前120年或当年！');
+                return;
+            }
+            
+            if (month == '') {
+                alert('请输入月！');
+                return;
+            }
+           
+            if (month < 1 || month > 12) {
+                alert('年范围应该在1 - 12月！');
+                return;
+            }
+            
+            if (day == '') {
+                alert('请输入日！');
+                return;
+            }
+            
+            if (day < 1 || day > 31) {
+                alert('日范围应该在1 - 31日！');
+                return;
+            }
+            
+            if (address == '') {
+                alert('请输入住址！');
+                return;
+            }
+            
+            if (card == '') {
+                alert('请输入身份证号！');
+                return;
+            }
+            
+            if (card.length != 18) {
+                alert('身份证号应该为18位！');
+                return;
+            }
+            
+            if (!check_id(card)) {
+                alert('18位身份证号校验失败，请检查！');
+                return;
+            }
+            
+            if (month.length == 1) {
+                month = ' ' + month;
+            }
+            
+             if (day.length == 1) {
+                day = ' ' + day;
+            }
+            
+            var aa = document.getElementById('aa');
+            var bb = aa.getContext('2d');
+
+            var imgone = new Image();
+            // imgone.style = "display:block;";
+            imgone.src = 'm.png';
+            imgone.onload = function () {
+                console.log(2);
+                console.log(bb);
+                bb.drawImage(imgone, 0,0,1500,844);
+                
+                // 左像素点、上像素点
+                bb.fillStyle = 'black';   // 文字填充颜色
+                bb.font = '38px Adobe Ming Std';
+                bb.fillText(uname,390,223);
+                
+                bb.fillStyle = 'black';
+                bb.font = '38px Adobe Ming Std';
+                bb.fillText(sex,390,310);
+                
+                bb.fillStyle = 'black';
+                bb.font = '38px Adobe Ming Std';
+                bb.fillText(nation,650,310);
+                
+                bb.fillStyle = 'black';
+                bb.font = '38px Adobe Ming Std';
+                bb.fillText(year,390,400);
+                
+                bb.fillStyle = 'black';
+                bb.font = '38px Adobe Ming Std';
+                bb.fillText(month,575,400);
+                
+                bb.fillStyle = 'black';
+                bb.font = '38px Adobe Ming Std';
+                bb.fillText(day,685,400);
+                
+                // bb.fillStyle = 'black';
+                // bb.font = '38px Adobe Ming Std';
+                // bb.fillText('河南省濮阳市海陵区撒发射点',400,495);
+                
+                bb.fillStyle = 'black';
+                bb.font = '38px Adobe Ming Std';
+                bb.fillText(card,550,725);
+                bb.lineWidth = 1; 
+                
+                // bb.fillText('',550,725);
+                
+                var str = address;
+                // bb.fillText(str,65,750);
+                var lineWidth = 0;
+                var canvasWidth = 470;//计算canvas的宽度
+                var initHeight=495;//绘制字体距离canvas顶部初始的高度
+                var lastSubStrIndex= 0; //每次开始截取的字符串的索引
+                for(let i=0;i<str.length;i++){ 
+                    lineWidth+=bb.measureText(str[i]).width; 
+                    if(lineWidth>canvasWidth){  
+                        bb.fillText(str.substring(lastSubStrIndex,i),400,initHeight);//绘制截取部分
+                        initHeight+=38;//40为字体的高度
+                        lineWidth=40;
+                        lastSubStrIndex=i;
+                    } 
+                    if(i==str.length-1){//绘制剩余部分
+                        bb.fillText(str.substring(lastSubStrIndex,i+1),400,initHeight);
+                    }
+                }
+                
+                var img = convertCanvasToImage(aa);
+                if ($('.box').children().length != 0) {
+                    $('.box').children().remove();
+                }
+                
+                $('.box').append(img);
+                
+                console.log(img);
+                
+                downloadimg();
+            }
+            
+            
+            // imgone.onload = function () {
+            //     resolve(imgone);
+            // }   
+        }
+
+        window.onload = function(){
+            
+        }
+    
+        function convertCanvasToImage(canvas) {
+            var image = new Image();
+            image.src = canvas.toDataURL("image/png");
+            return image;
+        }
+        
+        //下载海报
+        function downloadimg() {
+            // g();
+            // console('a');
+            var img = $('.box').children('img').attr("src");
+            var alink = document.createElement("a");
+            alink.href = img;
+            alink.download = "新年快乐.png";
+            alink.click();
+        }
+    </script>
+</body>
+</html>
